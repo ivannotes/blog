@@ -1,0 +1,86 @@
+{% load article_tags related_links %}
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="language" content="en-US" />
+<meta name="keywords" content="{% block meta-keywords %}{% endblock %}" />
+<meta name="description" content="{% block meta-description %}{% endblock %}" />
+
+<title>Ivannotes - {% block title %}Welcome{% endblock %}</title>
+
+<link rel="stylesheet" type="text/css" href="/static/css/screen.css" title="default" />
+<link rel="stylesheet" type="text/css" href="/static/css/pygments.css" media="screen" />
+
+<script type="text/javascript" src="/static/js/jquery.js"></script>
+<script type="text/javascript" src="/static/js/columns.js"></script>
+{% block extra-head %}{% endblock %}
+</head>
+<body>
+<div id="header">
+<h1><a href="/">ivannotes</a></h1>
+<div id="search">
+<form id="cse-search-box"></form>
+</div>
+</div>
+<div id="top-nav">
+<ul>
+  <li><a href="/" >Home</a></li>
+  <li><a href="/blog" >Blog</a></li>
+  <li><a href="/about" >About Me</a></li>
+</ul>
+</div>
+<div class="colmask blogstyle">
+<div class="colmid">
+<div class="colextra">
+<div class="colleft">
+<div class="col1">
+{% block content %}{% endblock %}
+</div>
+<div class="col4" style=""></div>
+<div class="col2">
+{% block centerbar %}
+{% endblock %}
+</div>
+<div class="col3">
+{% block sidebar %}
+    <h2>Navigator</h2>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/blog">Blog</a></li>
+      <li><a href="/about">About Me</a></li>
+    </ul>
+    <h2>RSS</h2>
+    <ul>
+      <li><a href="/feeds/latest/">rss</a></li>
+    </ul>
+    {% block recent_articles %}
+    <h2>Recent Articles</h2>
+        {% get_articles 10 as recent %}
+        {% for article in recent %}
+        {% if forloop.first %}<ul>{% endif %}
+            <li><a href="{{ article.get_absolute_url }}" title="Read this article">{{ article.title }}</a></li>
+        {% if forloop.last %}</ul>{% endif %}
+        {% endfor %}
+    {% endblock %}
+
+    {% block article_tags %}
+    <h2>Tag Cloud</h2>
+        {% tag_cloud %}
+    {% endblock %}
+    <h2>Related Links</h2>
+    	{% related_links %}
+{% endblock %}
+</div>
+<div style="clear:both"></div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="footer">
+{% block footer %}
+<p>Copyright &copy; {% now "Y" %} Ivan.Lee. All rights reserved. Powered by <a target="_blank" href="https://bitbucket.org/codekoala/django-articles">Django-Articles</a>. Inspired by <a target="_blank" href="http://www.codekoala.com/">Code Koala</a><a href="#" style="float:right">Back to top</a></p>
+{% endblock %}
+</div>
+</body>
+</html>

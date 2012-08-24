@@ -1,0 +1,14 @@
+{% load i18n pygdecorator %}
+<div class="post">
+    <h1 class="title"><a href="{{ article.get_absolute_url }}" title="{% trans 'Read this article' %}">{% trans article.title %}</a></h1>
+    <div class="quiet">
+        {% trans 'Posted on' %} {{ article.publish_date|date:"F jS, Y" }}
+        {% trans 'by' %} <a href="{% url articles_by_author article.author.username %}" title="{% trans 'View articles posted by' %} {{ article.author.get_name }}">{{ article.author.get_name }}</a>
+    </div>
+    <div class="entry">
+    	{{ article.rendered_content|pygmentize|safe}}
+    </div>
+    <div><a href="{{ article.get_absolute_url }}" title="{% trans 'Read full article' %}">{% trans 'Full Article' %}</a></div>
+</div>
+
+

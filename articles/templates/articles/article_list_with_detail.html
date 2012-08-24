@@ -1,0 +1,14 @@
+{% extends 'articles/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'Home' %}{% endblock %}
+{% block articles-content %}
+
+{% comment %}
+<h2 class="title">{% trans 'Articles' %}{% ifnotequal paginator.num_pages 1 %}, {% trans 'page' %} {{ page_obj.number }}{% endifnotequal %}</h2>
+{% endcomment %}
+
+{% for article in page_obj.object_list %}
+{% include 'articles/_article_summary.html' %}
+{% endfor %}
+{% endblock %}
