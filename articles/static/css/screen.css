@@ -291,13 +291,12 @@ div#active-users-map {
   background:#f4f4f4;
 }
 .blogstyle .colleft {
-  right:25%;
   background:#fff;
 }
 .blogstyle .col1,
 .blogstyle .col4 {
-  width:46%;
-  left:52%;
+  width:70%;
+  left:27%;
 }
 .blogstyle .col2 {
   width:21%;
@@ -460,7 +459,7 @@ div#active-users-map {
   .blogstyle .col3 {
     position: absolute;
     top: 0em;
-    left: 127%;
+    left: 102%;
     overflow: visible;
   }
   .seo-marketing p:first-child {

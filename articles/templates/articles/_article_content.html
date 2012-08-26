@@ -5,6 +5,8 @@
     {{ article.rendered_content|pygmentize|safe}}
 </div>
 
+{% include 'articles/_meta.html' %}
+
 {% for att in article.attachments.all %}
 {% if forloop.first %}<div id="article-attachments">
     <h3>Attachments</h3>

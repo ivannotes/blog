@@ -3,13 +3,23 @@
 <div id="article-meta">
   <h4>Meta</h4>
 
-  <p><strong>{% trans 'Published' %}</strong>: {{ article.publish_date|naturalday }}</p>
+  <strong>{% trans 'Published' %}</strong>: {{ article.publish_date|naturalday }}
 
-  <p><strong>{% trans 'Author' %}</strong>: <a href="{% url articles_by_author article.author.username %}" title="{% trans 'Read other articles by this author' %}">{{ article.author.get_name }}</a></p>
+  <strong>{% trans 'Author' %}</strong>: <a href="{% url articles_by_author article.author.username %}" title="{% trans 'Read other articles by this author' %}">{{ article.author.get_name }}</a>
 
-  <p><strong>{% trans 'Comments' %}</strong>: <a href="#disqus_thread">&nbsp;</a></p>
+  <strong>{% trans 'Comments' %}</strong>: <a href="#disqus_thread">&nbsp;</a>
 
-  <p><strong>{% trans 'Word Count' %}</strong>: {{ article.word_count|intcomma }}</p>
+  <strong>{% trans 'Word Count' %}</strong>: {{ article.word_count|intcomma }}
+
+  {% if article.use_addthis_button and article.addthis_username %}
+  <!-- AddThis Button BEGIN -->
+  <div>
+    <script type="application/javascript">var addthis_pub="{{ article.addthis_username }}";</script>
+    <a href="http://www.addthis.com/bookmark.php?v=20" onmouseover="return addthis_open(this, '', '[URL]', '[TITLE]')" onmouseout="addthis_close()" onclick="return addthis_sendto()"><img src="http://s7.addthis.com/static/btn/lg-share-en.gif" width="125" height="16" alt="Bookmark and Share" style="border:0"/></a>
+    <script type="application/javascript" src="http://s7.addthis.com/js/200/addthis_widget.js"></script>
+  </div>
+  <!-- AddThis Button END -->
+  {% endif %}
 
   {% if article.get_next_article %}
   <p>
@@ -23,16 +33,6 @@
     <strong>{% trans 'Previous' %}</strong>:
     <a href="{{ article.get_previous_article.get_absolute_url }}">{{ article.get_previous_article.title }}</a>
   </p>
-  {% endif %}
-
-  {% if article.use_addthis_button and article.addthis_username %}
-  <!-- AddThis Button BEGIN -->
-  <div>
-    <script type="application/javascript">var addthis_pub="{{ article.addthis_username }}";</script>
-    <a href="http://www.addthis.com/bookmark.php?v=20" onmouseover="return addthis_open(this, '', '[URL]', '[TITLE]')" onmouseout="addthis_close()" onclick="return addthis_sendto()"><img src="http://s7.addthis.com/static/btn/lg-share-en.gif" width="125" height="16" alt="Bookmark and Share" style="border:0"/></a>
-    <script type="application/javascript" src="http://s7.addthis.com/js/200/addthis_widget.js"></script>
-  </div>
-  <!-- AddThis Button END -->
   {% endif %}
 
   <script type="application/javascript" src="http://tweetmeme.com/i/scripts/button.js"></script>
