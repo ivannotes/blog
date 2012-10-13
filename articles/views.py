@@ -12,26 +12,27 @@ from articles.models import Article, Tag
 from datetime import datetime
 
 ARTICLE_PAGINATION = getattr(settings, 'ARTICLE_PAGINATION', 20)
+ARTICLE_INDEX_PAGINATION = getattr(settings, 'ARTICLE_INDEX_PAGINATION', 2)
 
 log = logging.getLogger('articles.views')
 
-def display_index(request, page=1):
+def display_index(request):
 	"""
 	Display index pages
 	"""
 	context = {'request': request}
 	articles = Article.objects.live(user=request.user)
         template = 'articles/article_list_with_detail.html'
-	paginator = Paginator(articles, ARTICLE_PAGINATION,
-                          orphans=int(ARTICLE_PAGINATION / 4))
+	paginator = Paginator(articles, ARTICLE_INDEX_PAGINATION)
+
 	try:
-	        page = paginator.page(page)
+	        page = paginator.page(1)
     	except EmptyPage:
         	raise Http404
 
-    	context.update({'paginator': paginator,
-                    'page_obj': page})
+    	context.update({'page_obj': page})
     	variables = RequestContext(request, context)
+	log.debug('get there %s' % paginator)
     	response = render_to_response(template, variables)
 	return response;
 
