@@ -2,11 +2,22 @@ from django.conf.urls.defaults import *
 
 from articles import views
 from articles.feeds import TagFeed, LatestEntries, TagFeedAtom, LatestEntriesAtom
+from articles.models import Article
+from django.contrib.sitemaps import FlatPageSitemap, GenericSitemap
 
 tag_rss = TagFeed()
 latest_rss = LatestEntries()
 tag_atom = TagFeedAtom()
 latest_atom = LatestEntriesAtom()
+
+info_dict = {
+    'queryset': Article.objects.all(),
+    'date_field': 'publish_date'
+}
+
+sitemaps = {
+            'blog': GenericSitemap(info_dict, priority=0.6)
+        }
 
 urlpatterns = patterns('',
     (r'^(?P<year>\d{4})/(?P<month>.{3})/(?P<day>\d{1,2})/(?P<slug>.*)/$', views.redirect_to_article),
@@ -16,6 +27,7 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns('',
     url(r'^$', views.display_index, name='articles_index'),
+    url(r'^sitemap\.xml$', 'django.contrib.sitemaps.views.sitemap', {'sitemaps': sitemaps}),
     url(r'^blog/$', views.display_blog_page, name='articles_archive'),
     url(r'^about/$', views.display_about_me, name='articles_archive'),
     url(r'^page/(?P<page>\d+)/$', views.display_blog_page, name='articles_archive_page'),
