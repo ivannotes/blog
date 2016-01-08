@@ -34,5 +34,6 @@ nosetests.xml
 .project
 .pydevproject
 
-settings.py
+blog/settings_pro.py
+blog/settings_test.py
 .DS_Store
