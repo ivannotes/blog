@@ -1,9 +1,9 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import url, patterns
 
 from articles import views
 from articles.feeds import TagFeed, LatestEntries, TagFeedAtom, LatestEntriesAtom
 from articles.models import Article
-from django.contrib.sitemaps import FlatPageSitemap, GenericSitemap
+from django.contrib.sitemaps import GenericSitemap
 
 tag_rss = TagFeed()
 latest_rss = LatestEntries()
