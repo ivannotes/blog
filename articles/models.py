@@ -263,7 +263,7 @@ class Article(models.Model):
         original = self.rendered_content
         if self.markup == MARKUP_MARKDOWN:
             self.rendered_content = \
-                markup.formatter(self.content, filter_name='markup')
+                markup.formatter(self.content, filter_name='markdown')
         elif self.markup == MARKUP_REST:
             self.rendered_content = \
                 markup.formatter(self.content, filter_name='restructuredtext')

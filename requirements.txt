@@ -2,3 +2,6 @@ Django==1.9.1
 django-markup==0.4
 MySQL-python==1.2.5
 Pygments==2.0.2
+textile==2.2.2
+docutils==0.12
+Markdown==2.6.5
