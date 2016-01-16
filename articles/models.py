@@ -8,12 +8,13 @@ import urllib
 from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import User
-from django.contrib.markup.templatetags import markup
 from django.contrib.sites.models import Site
 from django.core.cache import cache
 from django.conf import settings
 from django.template.defaultfilters import slugify, striptags
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
+from django_markup import markup
 
 from decorators import logtime, once_per_instance
 
@@ -45,6 +46,7 @@ TAG_RE = re.compile('[^a-z0-9\-_\+\:\.]?', re.I)
 
 log = logging.getLogger('articles.models')
 
+
 def get_name(user):
     """
     Provides a way to fall back to a user's username if their full name has not
@@ -70,6 +72,7 @@ def get_name(user):
 
     return name
 User.get_name = get_name
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=64, unique=True)
@@ -113,6 +116,7 @@ class Tag(models.Model):
     class Meta:
         ordering = ('name',)
 
+
 class ArticleStatusManager(models.Manager):
 
     def default(self):
@@ -122,6 +126,7 @@ class ArticleStatusManager(models.Manager):
             return None
         else:
             return default[0]
+
 
 class ArticleStatus(models.Model):
     name = models.CharField(max_length=50)
@@ -140,6 +145,7 @@ class ArticleStatus(models.Model):
         else:
             return self.name
 
+
 class ArticleManager(models.Manager):
 
     def active(self):
@@ -148,7 +154,7 @@ class ArticleManager(models.Manager):
         yet expired.
         """
         now = datetime.now()
-        return self.get_query_set().filter(
+        return self.get_queryset().filter(
                 Q(expiration_date__isnull=True) |
                 Q(expiration_date__gte=now),
                 publish_date__lte=now,
@@ -173,10 +179,15 @@ MARKUP_HELP = _("""Select the type of markup you are using in this article.
 <li><a href="http://thresholdstate.com/articles/4312/the-textile-reference-manual" target="_blank">Textile Guide</a></li>
 </ul>""")
 
+
+def _get_default_article_status():
+    return ArticleStatus.objects.default()
+
+
 class Article(models.Model):
     title = models.CharField(max_length=100)
     slug = models.SlugField(unique_for_year='publish_date')
-    status = models.ForeignKey(ArticleStatus, default=ArticleStatus.objects.default)
+    status = models.ForeignKey(ArticleStatus, default=_get_default_article_status)
     author = models.ForeignKey(User)
     sites = models.ManyToManyField(Site, blank=True)
 
@@ -251,11 +262,14 @@ class Article(models.Model):
 
         original = self.rendered_content
         if self.markup == MARKUP_MARKDOWN:
-            self.rendered_content = markup.markdown(self.content)
+            self.rendered_content = \
+                markup.formatter(self.content, filter_name='markdown')
         elif self.markup == MARKUP_REST:
-            self.rendered_content = markup.restructuredtext(self.content)
+            self.rendered_content = \
+                markup.formatter(self.content, filter_name='restructuredtext')
         elif self.markup == MARKUP_TEXTILE:
-            self.rendered_content = markup.textile(self.content)
+            self.rendered_content = \
+                markup.formatter(self.content, filter_name='textile')
         else:
             self.rendered_content = self.content
 
@@ -498,8 +512,13 @@ class Article(models.Model):
         ordering = ('-publish_date', 'title')
         get_latest_by = 'publish_date'
 
+
+def _get_attachment_upload_name(inst, fn):
+    return 'attach/%s/%s/%s' % (datetime.now().year, inst.article.slug, fn)
+
+
 class Attachment(models.Model):
-    upload_to = lambda inst, fn: 'attach/%s/%s/%s' % (datetime.now().year, inst.article.slug, fn)
+    upload_to = _get_attachment_upload_name
 
     article = models.ForeignKey(Article, related_name='attachments')
     attachment = models.FileField(upload_to=upload_to)
@@ -526,10 +545,11 @@ class Attachment(models.Model):
 
         return content_type
 
+
 class RelatedLink(models.Model):
     link = models.CharField(max_length=255)	
     link_name = models.CharField(max_length=255) 
-    create_time = models.DateTimeField(default=datetime.now())
+    create_time = models.DateTimeField(default=timezone.now)
 
     class Meta:
 	ordering = ('-id', 'create_time')
