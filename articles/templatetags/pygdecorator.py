@@ -17,7 +17,7 @@ def pygmentize(value):
     for match_obj in regex.finditer(value):
         code_class = match_obj.group(1)
         code_string = match_obj.group(2)
-        code_string = HTMLParser.HTMLParser().unescape(code_string)
+        code_string = HTMLParser().unescape(code_string)
         if code_class.find('class') > 0:
             language = re.split(r'"|\'', code_class)[1]
             lexer = lexers.get_lexer_by_name(language)
