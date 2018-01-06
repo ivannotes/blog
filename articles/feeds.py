@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.syndication.views import Feed, FeedDoesNotExist
 from django.contrib.sites.models import Site
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.feedgenerator import Atom1Feed
 
 from articles.models import Article, Tag
@@ -10,8 +10,8 @@ from articles.models import Article, Tag
 # default to 24 hours for feed caching
 FEED_TIMEOUT = getattr(settings, 'ARTICLE_FEED_TIMEOUT', 86400)
 
-class SiteMixin(object):
 
+class SiteMixin(object):
     @property
     def site(self):
         if not hasattr(self, '_site'):
@@ -19,10 +19,10 @@ class SiteMixin(object):
 
         return self._site
 
-class LatestEntries(Feed, SiteMixin):
 
+class LatestEntries(Feed, SiteMixin):
     def title(self):
-        return "%s Articles" % (self.site.name,)
+        return "%s Articles" % (self.site.name, )
 
     def link(self):
         return reverse('articles_archive')
@@ -32,7 +32,8 @@ class LatestEntries(Feed, SiteMixin):
         articles = cache.get(key)
 
         if articles is None:
-            articles = list(Article.objects.live().order_by('-publish_date')[:15])
+            articles = list(
+                Article.objects.live().order_by('-publish_date')[:15])
             cache.set(key, articles, FEED_TIMEOUT)
 
         return articles
@@ -44,10 +45,10 @@ class LatestEntries(Feed, SiteMixin):
         return item.publish_date
 
     def item_description(self, item):
-	return item.rendered_content 
+        return item.rendered_content
+
 
 class TagFeed(Feed, SiteMixin):
-
     def get_object(self, request, slug):
         try:
             return Tag.objects.get(slug__iexact=slug)
@@ -85,8 +86,10 @@ class TagFeed(Feed, SiteMixin):
     def item_pubdate(self, item):
         return item.publish_date
 
+
 class LatestEntriesAtom(LatestEntries):
     feed_type = Atom1Feed
+
 
 class TagFeedAtom(TagFeed):
     feed_type = Atom1Feed

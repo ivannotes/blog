@@ -19,8 +19,8 @@ MB_IMAP4 = 'IMAP4'
 MB_POP3 = 'POP3'
 ACCEPTABLE_TYPES = ('text/plain', 'text/html')
 
-class MailboxHandler(object):
 
+class MailboxHandler(object):
     def __init__(self, host, port, username, password, keyfile, certfile, ssl):
         self.host = host
         self.port = port
@@ -88,8 +88,8 @@ class MailboxHandler(object):
     def disconnect(self):
         raise NotImplemented
 
-class IMAPHandler(MailboxHandler):
 
+class IMAPHandler(MailboxHandler):
     @property
     def secure_port(self):
         return 993
@@ -106,7 +106,8 @@ class IMAPHandler(MailboxHandler):
         M = None
         try:
             if (self.keyfile and self.certfile) or self.ssl:
-                M = imaplib.IMAP4_SSL(self.host, self.port, self.keyfile, self.certfile)
+                M = imaplib.IMAP4_SSL(self.host, self.port, self.keyfile,
+                                      self.certfile)
             else:
                 M = imaplib.IMAP4(self.host, self.port)
 
@@ -141,8 +142,8 @@ class IMAPHandler(MailboxHandler):
         self.handle.close()
         self.handle.logout()
 
-class POPHandler(MailboxHandler):
 
+class POPHandler(MailboxHandler):
     @property
     def secure_port(self):
         return 995
@@ -159,7 +160,8 @@ class POPHandler(MailboxHandler):
         M = None
         try:
             if (self.keyfile and self.certfile) or self.ssl:
-                M = poplib.POP3_SSL(self.host, self.port, self.keyfile, self.certfile)
+                M = poplib.POP3_SSL(self.host, self.port, self.keyfile,
+                                    self.certfile)
             else:
                 M = poplib.POP3(self.host, self.port)
 
@@ -192,18 +194,53 @@ class POPHandler(MailboxHandler):
 
         self.handle.quit()
 
+
 class Command(BaseCommand):
     help = "Checks special e-mail inboxes for emails that should be posted as articles"
 
     option_list = BaseCommand.option_list + (
-        make_option('--protocol', dest='protocol', default=MB_IMAP4, help='Protocol to use to check for email'),
-        make_option('--host', dest='host', default=None, help='IP or name of mail server'),
-        make_option('--port', dest='port', default=None, help='Port used to connect to mail server'),
-        make_option('--keyfile', dest='keyfile', default=None, help='File containing a PEM formatted private key for SSL connections'),
-        make_option('--certfile', dest='certfile', default=None, help='File containing a certificate chain for SSL connections'),
-        make_option('--username', dest='username', default=None, help='Username to authenticate with mail server'),
-        make_option('--password', dest='password', default=None, help='Password to authenticate with mail server'),
-        make_option('--ssl', action='store_true', dest='ssl', default=False, help='Use to specify that the connection must be made using SSL'),
+        make_option(
+            '--protocol',
+            dest='protocol',
+            default=MB_IMAP4,
+            help='Protocol to use to check for email'),
+        make_option(
+            '--host',
+            dest='host',
+            default=None,
+            help='IP or name of mail server'),
+        make_option(
+            '--port',
+            dest='port',
+            default=None,
+            help='Port used to connect to mail server'),
+        make_option(
+            '--keyfile',
+            dest='keyfile',
+            default=None,
+            help=
+            'File containing a PEM formatted private key for SSL connections'),
+        make_option(
+            '--certfile',
+            dest='certfile',
+            default=None,
+            help='File containing a certificate chain for SSL connections'),
+        make_option(
+            '--username',
+            dest='username',
+            default=None,
+            help='Username to authenticate with mail server'),
+        make_option(
+            '--password',
+            dest='password',
+            default=None,
+            help='Password to authenticate with mail server'),
+        make_option(
+            '--ssl',
+            action='store_true',
+            dest='ssl',
+            default=False,
+            help='Use to specify that the connection must be made using SSL'),
     )
 
     def log(self, message, level=2):
@@ -231,7 +268,9 @@ class Command(BaseCommand):
         handle = None
         try:
             self.log('Creating mailbox handle')
-            handle = MailboxHandler.get_handle(protocol, host, port, username, password, keyfile, certfile, ssl)
+            handle = MailboxHandler.get_handle(protocol, host, port, username,
+                                               password, keyfile, certfile,
+                                               ssl)
 
             self.log('Fetching messages')
             messages = handle.fetch()
@@ -248,7 +287,9 @@ class Command(BaseCommand):
             else:
                 self.log('No messages fetched')
         except socket.error:
-            self.log('Failed to communicate with mail server.  Please verify your settings.', 0)
+            self.log(
+                'Failed to communicate with mail server.  Please verify your settings.',
+                0)
         finally:
             if handle:
                 try:
@@ -265,7 +306,8 @@ class Command(BaseCommand):
             self.log('Extracting email contents from multipart message')
 
             magic_type = 'multipart/alternative'
-            payload_types = dict((p.get_content_type(), i) for i, p in enumerate(email.get_payload()))
+            payload_types = dict((p.get_content_type(), i)
+                                 for i, p in enumerate(email.get_payload()))
             if magic_type in payload_types.keys():
                 self.log('Found magic content type: %s' % magic_type)
                 index = payload_types[magic_type]
@@ -296,7 +338,8 @@ class Command(BaseCommand):
 
         # make sure we have a valid default markup
         markup = self.config.get('markup', MARKUP_HTML)
-        if markup not in (MARKUP_HTML, MARKUP_MARKDOWN, MARKUP_REST, MARKUP_TEXTILE):
+        if markup not in (MARKUP_HTML, MARKUP_MARKDOWN, MARKUP_REST,
+                          MARKUP_TEXTILE):
             markup = MARKUP_HTML
 
         for num, email in emails.iteritems():
@@ -316,9 +359,12 @@ class Command(BaseCommand):
             content = self.get_email_content(email)
             try:
                 # try to grab the timestamp from the email message
-                publish_date = datetime.fromtimestamp(time.mktime(parsedate(email['Date'])))
+                publish_date = datetime.fromtimestamp(
+                    time.mktime(parsedate(email['Date'])))
             except StandardError, err:
-                self.log("An error occurred when I tried to convert the email's timestamp into a datetime object: %s" % (err,))
+                self.log(
+                    "An error occurred when I tried to convert the email's timestamp into a datetime object: %s"
+                    % (err, ))
                 publish_date = datetime.now()
 
             # post the article
@@ -336,19 +382,23 @@ class Command(BaseCommand):
                 self.log('Article created.')
             except StandardError, err:
                 # log it and move on to the next message
-                self.log('Error creating article: %s' % (err,), 0)
+                self.log('Error creating article: %s' % (err, ), 0)
                 continue
             else:
 
                 # handle attachments
                 if email.is_multipart():
-                    files = [pl for pl in email.get_payload() if pl.get_filename() is not None]
+                    files = [
+                        pl for pl in email.get_payload()
+                        if pl.get_filename() is not None
+                    ]
                     for att in files:
                         obj = Attachment(
                             article=article,
                             caption=att.get_filename(),
                         )
-                        obj.attachment.save(obj.caption, ChunkyString(att.get_payload()))
+                        obj.attachment.save(obj.caption,
+                                            ChunkyString(att.get_payload()))
                         obj.save()
 
                 created.append(num)
@@ -356,19 +406,22 @@ class Command(BaseCommand):
             if ack:
                 # notify the user when the article is posted
                 subject = u'%s: %s' % (_("Article Posted"), title)
-                message = _("""Your email (%(title)s) has been posted as an article on %(site_name)s.
+                message = _(
+                    """Your email (%(title)s) has been posted as an article on %(site_name)s.
 
     http://%(domain)s%(article_url)s""") % {
-                    'title': title,
-                    'site_name': site.name,
-                    'domain': site.domain,
-                    'article_url': article.get_absolute_url(),
-                }
+                        'title': title,
+                        'site_name': site.name,
+                        'domain': site.domain,
+                        'article_url': article.get_absolute_url(),
+                    }
 
-                self.log('Sending acknowledgment email to %s' % (author.email,))
+                self.log('Sending acknowledgment email to %s' %
+                         (author.email, ))
                 author.email_user(subject, message)
 
         return created
+
 
 class ChunkyString(str):
     """Makes is possible to easily chunk attachments"""
@@ -383,4 +436,3 @@ class ChunkyString(str):
 
             if i > len(decoded):
                 raise StopIteration
-

@@ -4,10 +4,9 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.paginator import Paginator, EmptyPage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponsePermanentRedirect, Http404, HttpResponseRedirect, HttpResponse
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.shortcuts import get_object_or_404, render
 from articles.models import Article, Tag
 from datetime import datetime
 
@@ -16,38 +15,46 @@ ARTICLE_INDEX_PAGINATION = getattr(settings, 'ARTICLE_INDEX_PAGINATION', 2)
 
 log = logging.getLogger('articles.views')
 
+
 def display_index(request):
-	"""
+    """
 	Display index pages
 	"""
-	context = {'request': request}
-	articles = Article.objects.live(user=request.user)
-        template = 'articles/article_list_with_detail.html'
-	paginator = Paginator(articles, ARTICLE_INDEX_PAGINATION)
+    context = {'request': request}
+    articles = Article.objects.live(user=request.user)
+    template = 'articles/article_list_with_detail.html'
+    paginator = Paginator(articles, ARTICLE_INDEX_PAGINATION)
 
-	try:
-	        page = paginator.page(1)
-    	except EmptyPage:
-        	raise Http404
+    try:
+        page = paginator.page(1)
+    except EmptyPage:
+        raise Http404
 
-    	context.update({'page_obj': page})
-    	variables = RequestContext(request, context)
-	log.debug('get there %s' % paginator)
-    	response = render_to_response(template, variables)
-	return response;
+    context.update({'page_obj': page})
+    log.debug('get there %s' % paginator)
+    response = render(request, template, context)
+    return response
+
 
 def display_about_me(request):
-	"""
+    """
 	Display about me
 	"""
-	context = {'request': request, 
-		   'disqus_forum': getattr(settings, 'DISQUS_FORUM_SHORTNAME', None)}
-	template = 'articles/about_me.html'
-	variables = RequestContext(request, context)
-	response = render_to_response(template, variables)
-	return response;
+    context = {
+        'request': request,
+        'disqus_forum': getattr(settings, 'DISQUS_FORUM_SHORTNAME', None)
+    }
+    template = 'articles/about_me.html'
+    response = render(request, template, context)
+    return response
 
-def display_blog_page(request, tag=None, username=None, year=None, month=None, page=1):
+
+def display_blog_page(request,
+                      tag=None,
+                      username=None,
+                      year=None,
+                      month=None,
+                      page=1):
     """
     Handles all of the magic behind the pages that list articles in any way.
     Yes, it's dirty to have so many URLs go to one view, but I'd rather do that
@@ -77,7 +84,9 @@ def display_blog_page(request, tag=None, username=None, year=None, month=None, p
         # listing articles in a given month and year
         year = int(year)
         month = int(month)
-        articles = Article.objects.live(user=request.user).select_related().filter(publish_date__year=year, publish_date__month=month)
+        articles = Article.objects.live(
+            user=request.user).select_related().filter(
+                publish_date__year=year, publish_date__month=month)
         template = 'articles/in_month.html'
         context['month'] = datetime(year, month, 1)
 
@@ -87,44 +96,50 @@ def display_blog_page(request, tag=None, username=None, year=None, month=None, p
         template = 'articles/article_list.html'
 
     # paginate the articles
-    paginator = Paginator(articles, ARTICLE_PAGINATION,
-                          orphans=int(ARTICLE_PAGINATION / 4))
+    paginator = Paginator(
+        articles, ARTICLE_PAGINATION, orphans=int(ARTICLE_PAGINATION / 4))
     try:
         page = paginator.page(page)
     except EmptyPage:
         raise Http404
 
-    context.update({'paginator': paginator,
-                    'page_obj': page})
-    variables = RequestContext(request, context)
-    response = render_to_response(template, variables)
+    context.update({'paginator': paginator, 'page_obj': page})
+    response = render(request, template, context)
 
     return response
 
-def display_article(request, year, slug, template='articles/article_detail.html'):
+
+def display_article(request,
+                    year,
+                    slug,
+                    template='articles/article_detail.html'):
     """Displays a single article."""
 
     try:
-        article = Article.objects.live(user=request.user).get(publish_date__year=year, slug=slug)
+        article = Article.objects.live(user=request.user).get(
+            publish_date__year=year, slug=slug)
     except Article.DoesNotExist:
         raise Http404
 
     # make sure the user is logged in if the article requires it
     if article.login_required and not request.user.is_authenticated():
-        return HttpResponseRedirect(reverse('auth_login') + '?next=' + request.path)
+        return HttpResponseRedirect(
+            reverse('auth_login') + '?next=' + request.path)
 
-    variables = RequestContext(request, {
+    context = {
         'article': article,
         'disqus_forum': getattr(settings, 'DISQUS_FORUM_SHORTNAME', None),
-    })
-    response = render_to_response(template, variables)
+    }
+    response = render(request, template, context)
 
     return response
+
 
 def redirect_to_article(request, year, month, day, slug):
     # this is a little snippet to handle URLs that are formatted the old way.
     article = get_object_or_404(Article, publish_date__year=year, slug=slug)
     return HttpResponsePermanentRedirect(article.get_absolute_url())
+
 
 def ajax_tag_autocomplete(request):
     """Offers a list of existing tags that match the specified query"""
@@ -144,4 +159,3 @@ def ajax_tag_autocomplete(request):
         return response
 
     return HttpResponse()
-

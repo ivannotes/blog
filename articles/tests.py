@@ -7,10 +7,10 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
 
-from models import Article, ArticleStatus, Tag, get_name, MARKUP_HTML, MARKUP_MARKDOWN, MARKUP_REST, MARKUP_TEXTILE
+from .models import Article, ArticleStatus, Tag, get_name, MARKUP_HTML, MARKUP_MARKDOWN, MARKUP_REST, MARKUP_TEXTILE
+
 
 class ArticleUtilMixin(object):
-
     @property
     def superuser(self):
         if not hasattr(self, '_superuser'):
@@ -23,8 +23,7 @@ class ArticleUtilMixin(object):
             title=title,
             content=content,
             author=author or self.superuser,
-            **kwargs
-        )
+            **kwargs)
         a.save()
 
         if tags:
@@ -32,6 +31,7 @@ class ArticleUtilMixin(object):
             a.save()
 
         return a
+
 
 class TagTestCase(TestCase):
     fixtures = ['tags']
@@ -66,10 +66,13 @@ class TagTestCase(TestCase):
     def test_get_absolute_url(self):
         name = 'Hi There'
         t = Tag.objects.create(name=name)
-        self.assertEqual(t.get_absolute_url(), reverse('articles_display_tag', args=[Tag.clean_tag(name)]))
+        self.assertEqual(t.get_absolute_url(),
+                         reverse(
+                             'articles_display_tag',
+                             args=[Tag.clean_tag(name)]))
+
 
 class ArticleStatusTestCase(TestCase):
-
     def setUp(self):
         pass
 
@@ -79,6 +82,7 @@ class ArticleStatusTestCase(TestCase):
 
         _as.is_live = False
         self.assertEqual(unicode(_as), u'Fake')
+
 
 class ArticleTestCase(TestCase, ArticleUtilMixin):
     fixtures = ['users']
@@ -98,7 +102,8 @@ class ArticleTestCase(TestCase, ArticleUtilMixin):
         """Active articles"""
 
         a1 = self.new_article('New Article', 'This is a new article')
-        a2 = self.new_article('New Article', 'This is a new article', is_active=False)
+        a2 = self.new_article(
+            'New Article', 'This is a new article', is_active=False)
 
         self.assertEquals(Article.objects.active().count(), 1)
 
@@ -136,9 +141,12 @@ class ArticleTestCase(TestCase, ArticleUtilMixin):
 
         live_status = ArticleStatus.objects.filter(is_live=True)[0]
         a1 = self.new_article('New Article', 'This is a new article')
-        a2 = self.new_article('New Article', 'This is a new article', is_active=False)
-        a3 = self.new_article('New Article', 'This is a new article', status=live_status)
-        a4 = self.new_article('New Article', 'This is a new article', status=live_status)
+        a2 = self.new_article(
+            'New Article', 'This is a new article', is_active=False)
+        a3 = self.new_article(
+            'New Article', 'This is a new article', status=live_status)
+        a4 = self.new_article(
+            'New Article', 'This is a new article', status=live_status)
 
         self.assertEquals(Article.objects.live().count(), 2)
         self.assertEquals(Article.objects.live(self.superuser).count(), 3)
@@ -149,7 +157,11 @@ class ArticleTestCase(TestCase, ArticleUtilMixin):
         """
 
         one_second_ago = datetime.now() - timedelta(seconds=1)
-        a = self.new_article('Expiring Article', 'I expired one second ago', is_active=True, expiration_date=one_second_ago)
+        a = self.new_article(
+            'Expiring Article',
+            'I expired one second ago',
+            is_active=True,
+            expiration_date=one_second_ago)
 
         self.assertTrue(a.is_active)
 
@@ -159,7 +171,9 @@ class ArticleTestCase(TestCase, ArticleUtilMixin):
     def test_markup_markdown(self):
         """Makes sure markdown works"""
 
-        a = self.new_article('Demo', '''A First Level Header
+        a = self.new_article(
+            'Demo',
+            '''A First Level Header
 ====================
 
 A Second Level Header
@@ -167,7 +181,8 @@ A Second Level Header
 
 Now is the time for all good men to come to
 the aid of their country. This is just a
-regular paragraph.''', markup=MARKUP_MARKDOWN)
+regular paragraph.''',
+            markup=MARKUP_MARKDOWN)
         a.do_render_markup()
 
         print a.rendered_content
@@ -175,7 +190,9 @@ regular paragraph.''', markup=MARKUP_MARKDOWN)
     def test_markup_rest(self):
         """Makes sure reStructuredText works"""
 
-        a = self.new_article('Demo', '''A First Level Header
+        a = self.new_article(
+            'Demo',
+            '''A First Level Header
 ====================
 
 A Second Level Header
@@ -183,7 +200,8 @@ A Second Level Header
 
 Now is the time for all good men to come to
 the aid of their country. This is just a
-regular paragraph.''', markup=MARKUP_REST)
+regular paragraph.''',
+            markup=MARKUP_REST)
         a.do_render_markup()
 
         print a.rendered_content
@@ -191,7 +209,9 @@ regular paragraph.''', markup=MARKUP_REST)
     def test_markup_textile(self):
         """Makes sure textile works"""
 
-        a = self.new_article('Demo', '''A First Level Header
+        a = self.new_article(
+            'Demo',
+            '''A First Level Header
 ====================
 
 A Second Level Header
@@ -199,7 +219,8 @@ A Second Level Header
 
 Now is the time for all good men to come to
 the aid of their country. This is just a
-regular paragraph.''', markup=MARKUP_TEXTILE)
+regular paragraph.''',
+            markup=MARKUP_TEXTILE)
         a.do_render_markup()
 
         print a.rendered_content
@@ -218,6 +239,7 @@ regular paragraph.</p>'''
         a.do_render_markup()
         self.assertEqual(html, a.rendered_content)
 
+
 class ArticleAdminTestCase(TestCase, ArticleUtilMixin):
     fixtures = ['users']
 
@@ -234,17 +256,21 @@ class ArticleAdminTestCase(TestCase, ArticleUtilMixin):
         """Creates some inactive articles and marks them active"""
 
         for i in range(5):
-            self.new_article('Article %s' % (i,), 'Content for article %s' % (i,), is_active=False)
+            self.new_article(
+                'Article %s' % (i, ),
+                'Content for article %s' % (i, ),
+                is_active=False)
 
         # check number of active articles
         self.assertEqual(Article.objects.active().count(), 0)
 
         # mark some articles active
-        self.client.post(reverse('admin:articles_article_changelist'), {
-            '_selected_action': ['1','2','3'],
-            'index': 0,
-            'action': 'mark_active',
-        })
+        self.client.post(
+            reverse('admin:articles_article_changelist'), {
+                '_selected_action': ['1', '2', '3'],
+                'index': 0,
+                'action': 'mark_active',
+            })
 
         # check number of active articles
         self.assertEqual(Article.objects.active().count(), 3)
@@ -253,17 +279,19 @@ class ArticleAdminTestCase(TestCase, ArticleUtilMixin):
         """Creates some active articles and marks them inactive"""
 
         for i in range(5):
-            self.new_article('Article %s' % (i,), 'Content for article %s' % (i,))
+            self.new_article('Article %s' % (i, ),
+                             'Content for article %s' % (i, ))
 
         # check number of active articles
         self.assertEqual(Article.objects.active().count(), 5)
 
         # mark some articles inactive
-        self.client.post(reverse('admin:articles_article_changelist'), {
-            '_selected_action': ['1','2','3'],
-            'index': 0,
-            'action': 'mark_inactive',
-        })
+        self.client.post(
+            reverse('admin:articles_article_changelist'), {
+                '_selected_action': ['1', '2', '3'],
+                'index': 0,
+                'action': 'mark_inactive',
+            })
 
         # check number of active articles
         self.assertEqual(Article.objects.active().count(), 2)
@@ -278,17 +306,20 @@ class ArticleAdminTestCase(TestCase, ArticleUtilMixin):
         self.new_article('Another Article', 'Some content')
 
         # make sure we have articles with the default status
-        self.assertEqual(Article.objects.filter(status=default_status).count(), 2)
+        self.assertEqual(
+            Article.objects.filter(status=default_status).count(), 2)
 
         # mark them with the other status
-        self.client.post(reverse('admin:articles_article_changelist'), {
-            '_selected_action': ['1','2'],
-            'index': 0,
-            'action': 'mark_status_%s' % (other_status.id,),
-        })
+        self.client.post(
+            reverse('admin:articles_article_changelist'), {
+                '_selected_action': ['1', '2'],
+                'index': 0,
+                'action': 'mark_status_%s' % (other_status.id, ),
+            })
 
         # make sure we have articles with the other status
-        self.assertEqual(Article.objects.filter(status=other_status).count(), 2)
+        self.assertEqual(
+            Article.objects.filter(status=other_status).count(), 2)
 
     def test_automatic_author(self):
         """
@@ -296,22 +327,24 @@ class ArticleAdminTestCase(TestCase, ArticleUtilMixin):
         the user who is logged in
         """
 
-        res = self.client.post(reverse('admin:articles_article_add'), {
-            'title': 'A new article',
-            'slug': 'new-article',
-            'content': 'Some content',
-            'tags': 'this is a test',
-            'status': ArticleStatus.objects.default().id,
-            'markup': MARKUP_HTML,
-            'publish_date_0': '2011-08-15',
-            'publish_date_1': '09:00:00',
-            'attachments-TOTAL_FORMS': 5,
-            'attachments-INITIAL_FORMS': 0,
-            'attachments-MAX_NUM_FORMS': 15,
-        })
+        res = self.client.post(
+            reverse('admin:articles_article_add'), {
+                'title': 'A new article',
+                'slug': 'new-article',
+                'content': 'Some content',
+                'tags': 'this is a test',
+                'status': ArticleStatus.objects.default().id,
+                'markup': MARKUP_HTML,
+                'publish_date_0': '2011-08-15',
+                'publish_date_1': '09:00:00',
+                'attachments-TOTAL_FORMS': 5,
+                'attachments-INITIAL_FORMS': 0,
+                'attachments-MAX_NUM_FORMS': 15,
+            })
 
         self.assertRedirects(res, reverse('admin:articles_article_changelist'))
-        self.assertEqual(Article.objects.filter(author__username='admin').count(), 1)
+        self.assertEqual(
+            Article.objects.filter(author__username='admin').count(), 1)
 
     def test_non_superuser(self):
         """Makes sure that non-superuser users can only see articles they posted"""
@@ -323,7 +356,8 @@ class ArticleAdminTestCase(TestCase, ArticleUtilMixin):
         # now add some as a non-superuser
         joe = User.objects.create_user('joe', 'joe@bob.com', 'bob')
         joe.is_staff = True
-        joe.user_permissions = Permission.objects.filter(codename__endswith='_article')
+        joe.user_permissions = Permission.objects.filter(
+            codename__endswith='_article')
         joe.save()
 
         self.client.login(username='joe', password='bob')
@@ -339,6 +373,7 @@ class ArticleAdminTestCase(TestCase, ArticleUtilMixin):
         res = self.client.get(reverse('admin:articles_article_changelist'))
         self.assertEqual(res.content.count('_selected_action'), 10)
 
+
 class FeedTestCase(TestCase, ArticleUtilMixin):
     fixtures = ['tags', 'users']
 
@@ -346,8 +381,11 @@ class FeedTestCase(TestCase, ArticleUtilMixin):
         self.client = Client()
 
         status = ArticleStatus.objects.filter(is_live=True)[0]
-        self.new_article('This is a test!', 'Testing testing 1 2 3',
-                         tags=Tag.objects.all(), status=status)
+        self.new_article(
+            'This is a test!',
+            'Testing testing 1 2 3',
+            tags=Tag.objects.all(),
+            status=status)
 
     def test_latest_entries(self):
         """Makes sure the latest entries feed works"""
@@ -367,14 +405,19 @@ class FeedTestCase(TestCase, ArticleUtilMixin):
         res = self.client.get(reverse('articles_feed', args=['tags/demo/']))
         self.assertEqual(res.status_code, 404)
 
-        res = self.client.get(reverse('articles_feed_atom', args=['tags/demo']))
+        res = self.client.get(
+            reverse('articles_feed_atom', args=['tags/demo']))
         self.assertEqual(res.status_code, 200)
 
-        res = self.client.get(reverse('articles_feed_atom', args=['tags/demo/']))
+        res = self.client.get(
+            reverse('articles_feed_atom', args=['tags/demo/']))
         self.assertEqual(res.status_code, 404)
 
+
 class FormTestCase(TestCase, ArticleUtilMixin):
-    fixtures = ['users',]
+    fixtures = [
+        'users',
+    ]
 
     def setUp(self):
         self.client = Client()
@@ -389,8 +432,10 @@ class FormTestCase(TestCase, ArticleUtilMixin):
         """Makes sure the ArticleAdminForm works as expected"""
 
         a = self.new_article('Sample', 'sample')
-        res = self.client.get(reverse('admin:articles_article_change', args=[a.id]))
+        res = self.client.get(
+            reverse('admin:articles_article_change', args=[a.id]))
         self.assertEqual(res.status_code, 200)
+
 
 class ListenerTestCase(TestCase, ArticleUtilMixin):
     fixtures = ['users', 'tags']
@@ -398,7 +443,10 @@ class ListenerTestCase(TestCase, ArticleUtilMixin):
     def test_apply_new_tag(self):
         """Makes sure auto-tagging works"""
 
-        a = self.new_article('Yay', 'This is just a demonstration of how awesome Django and Python are.', auto_tag=True)
+        a = self.new_article(
+            'Yay',
+            'This is just a demonstration of how awesome Django and Python are.',
+            auto_tag=True)
         self.assertEqual(a.tags.count(), 0)
 
         Tag.objects.create(name='awesome')
@@ -408,8 +456,11 @@ class ListenerTestCase(TestCase, ArticleUtilMixin):
         # make sure the tags were actually applied to our new article
         self.assertEqual(a.tags.count(), 3)
 
+
 class MiscTestCase(TestCase):
-    fixtures = ['users',]
+    fixtures = [
+        'users',
+    ]
 
     def test_get_name(self):
         u1 = User.objects.get(pk=1)

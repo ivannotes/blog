@@ -1,6 +1,6 @@
 from django import template
 from django.core.cache import cache
-from django.core.urlresolvers import resolve, reverse, Resolver404
+from django.urls import resolve, reverse, Resolver404
 from django.db.models import Count
 from articles.models import Article, Tag
 from datetime import datetime
@@ -127,7 +127,7 @@ class GetArticleArchivesNode(template.Node):
                 pub = article.publish_date
 
                 # see if we already have an article in this year
-                if not archives.has_key(pub.year):
+                if pub.year not in archives:
                     # if not, initialize a dict for the year
                     archives[pub.year] = {}
 

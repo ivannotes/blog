@@ -48,13 +48,12 @@ BLOG_APPS = [
 
 INSTALLED_APPS = REQUIRED_APPS + BLOG_APPS
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -170,7 +169,7 @@ LOGGING = {
 		'articles': {
 			'level': 'DEBUG',
 			'handlers': ['file_handler'],
-			'propagate': False 
+			'propagate': False
 		},
 		'django': {
 			'level': 'DEBUG',
@@ -180,7 +179,7 @@ LOGGING = {
 	},
 	'root': {
 		'level': 'DEBUG',
-		'hanlders': ['file_handler']	
+		'hanlders': ['file_handler']
 	}
 }
 
