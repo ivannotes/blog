@@ -35,8 +35,6 @@
   </p>
   {% endif %}
 
-  <script type="application/javascript" src="https://tweetmeme.com/i/scripts/button.js"></script>
-
   <h4>{% trans 'Tags' %}</h4>
   <p>{% if article.tags.count %}{% for tag in article.tags.all %}<a href="{{ tag.get_absolute_url }}">{{ tag.name }}</a> {% endfor %}{% else %}None{% endif %}</p>
 
